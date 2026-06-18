@@ -8,7 +8,7 @@
 window.VC_CONFIG = {
   // Client key de l'app TikTok (onglet Credentials du portail développeur).
   // À COLLER : copier la "Client key" depuis https://developers.tiktok.com
-  CLIENT_KEY: "awppijs4vpz11u1s",
+  CLIENT_KEY: "sbawurg5htshac823m",
 
   // URL publique du Worker Cloudflare déployé (sans slash final).
   // Ex : https://versets-clairs-tiktok.<sous-domaine>.workers.dev
