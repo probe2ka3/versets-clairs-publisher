@@ -8,11 +8,11 @@
 window.VC_CONFIG = {
   // Client key de l'app TikTok (onglet Credentials du portail développeur).
   // À COLLER : copier la "Client key" depuis https://developers.tiktok.com
-  CLIENT_KEY: "REMPLACER_PAR_LE_CLIENT_KEY",
+  CLIENT_KEY: "awppijs4vpz11u1s",
 
   // URL publique du Worker Cloudflare déployé (sans slash final).
   // Ex : https://versets-clairs-tiktok.<sous-domaine>.workers.dev
-  WORKER_URL: "REMPLACER_PAR_URL_DU_WORKER",
+  WORKER_URL: "https://versets-clairs-tiktok.probe2-ka3.workers.dev",
 
   // Doit correspondre EXACTEMENT à la Redirect URI enregistrée dans le portail.
   REDIRECT_URI:

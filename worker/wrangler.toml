@@ -17,7 +17,7 @@ crons = ["*/5 * * * *"]
 # Créer : npx wrangler kv namespace create VC  -> coller l'id ci-dessous.
 [[kv_namespaces]]
 binding = "VC"
-id = "REMPLACER_PAR_ID_KV"
+id = "722a25957cd147189f6d7267788df74f"
 
 # Secrets (JAMAIS ici) :
 #   npx wrangler secret put CLIENT_KEY
