@@ -19,11 +19,36 @@ python scripts/gen_manifest.py        # -> _publisher/manifest.json
 ```
 
 ## 2. Héberger les vidéos sur R2 (gratuit, 10 Go)
-1. Cloudflare → R2 → créer un bucket (ex `versets-clairs`).
-2. Activer l'accès public (r2.dev) → on obtient une base type `https://pub-xxxx.r2.dev`.
-3. Uploader les MP4 de `renders/local/ordered/` (garder EXACTEMENT les noms du manifeste,
-   ex `01-1-video-pack01-112-1-4-fr.mp4`).
-4. Mettre cette base dans `worker/wrangler.toml` → `VIDEO_BASE`.
+État actuel : le compte Cloudflare est connecté à Wrangler, mais R2 n'est pas encore
+activé sur le compte. `wrangler r2 bucket list` retourne :
+`Please enable R2 through the Cloudflare Dashboard. [code: 10042]`
+
+À faire une seule fois dans le dashboard Cloudflare :
+1. Cloudflare → R2 → activer R2 sur le compte.
+2. Créer un bucket `versets-clairs` (ou via `npx.cmd wrangler r2 bucket create versets-clairs`).
+3. Activer l'accès public `r2.dev` du bucket → on obtient une base type `https://pub-xxxx.r2.dev`.
+
+Puis uploader les MP4 de `renders/local/ordered/` avec les noms EXACTS du manifeste :
+```powershell
+cd C:\Users\Rexhep\Desktop\versets-clairs-publisher
+.\scripts\upload-r2.ps1 -Bucket versets-clairs
+```
+
+Contrôle à faire après upload :
+```powershell
+npx.cmd wrangler r2 object get versets-clairs/01-1-video-pack01-112-1-4-fr.mp4 --file $env:TEMP\r2-check.mp4
+```
+
+Enfin, mettre la base publique R2 dans `worker/wrangler.toml` :
+```toml
+VIDEO_BASE = "https://pub-xxxx.r2.dev"
+```
+
+Puis redéployer :
+```powershell
+cd C:\Users\Rexhep\Desktop\versets-clairs-publisher\worker
+npx.cmd wrangler deploy
+```
 
 ## 3. Créer le stockage KV
 ```bash
