@@ -141,9 +141,13 @@ async function publishOne(env, accessToken, videoUrl, caption) {
   }
   const creator = creatorData.data || {};
   const privacyOptions = creator.privacy_level_options || [];
-  const privacyLevel = privacyOptions.includes("SELF_ONLY")
-    ? "SELF_ONLY"
-    : privacyOptions[privacyOptions.length - 1];
+  // Production : publier en public quand l'app est approuvée
+  // (PUBLIC_TO_EVERYONE dispo). Sinon (sandbox / non audité) -> privé.
+  const privacyLevel = privacyOptions.includes("PUBLIC_TO_EVERYONE")
+    ? "PUBLIC_TO_EVERYONE"
+    : privacyOptions.includes("SELF_ONLY")
+      ? "SELF_ONLY"
+      : privacyOptions[0];
   if (!privacyLevel) throw new Error("privacy_level_unavailable");
 
   const vid = await fetch(videoUrl);

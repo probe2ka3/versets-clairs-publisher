@@ -13,6 +13,7 @@
         <span>Versets Clairs Publisher</span>
       </a>
       <nav aria-label="Legal pages">
+        <a href="./schedule.html">Schedule</a>
         <a href="./privacy.html">Privacy</a>
         <a href="./terms.html">Terms</a>
       </nav>
@@ -21,35 +22,24 @@
     <main>
       <section class="hero">
         <div class="hero-copy">
-          <p class="eyebrow">Step 2 · Review &amp; publish</p>
+          <p class="eyebrow">Review &amp; publish</p>
           <h1>Publish a reviewed video to your TikTok account.</h1>
           <p id="account">Checking TikTok connection…</p>
 
           <div id="review-block" style="display:none">
-            <label class="field-label" for="video-choice">Video</label>
+            <label class="field-label" for="video-choice">Video (<span id="vcount">0</span> ready)</label>
             <select id="video-choice" class="text-input"></select>
             <h2>Selected video</h2>
             <video id="preview" controls playsinline width="240"
                    style="border-radius:12px;background:#000"></video>
             <label class="field-label" for="caption">Caption</label>
-            <textarea
-              id="caption"
-              class="text-input caption-editor"
-              rows="7"
-            ></textarea>
+            <textarea id="caption" class="text-input caption-editor" rows="7"></textarea>
             <label class="field-label" for="admin-key">Admin key</label>
-            <input
-              id="admin-key"
-              class="text-input"
-              type="password"
-              autocomplete="current-password"
-              placeholder="Cloudflare admin key"
-            />
+            <input id="admin-key" class="text-input" type="password"
+                   autocomplete="current-password" placeholder="Worker admin key" />
 
             <div class="actions">
-              <button id="publish-btn" class="button" type="button">
-                Direct Post to TikTok
-              </button>
+              <button id="publish-btn" class="button" type="button">Direct Post to TikTok</button>
               <a class="button secondary" href="./index.html">Disconnect</a>
             </div>
             <p id="publish-status" class="muted-note"></p>
@@ -76,6 +66,7 @@
         var reviewBlock = document.getElementById("review-block");
         var signedOut = document.getElementById("signed-out");
         var videoChoice = document.getElementById("video-choice");
+        var vcount = document.getElementById("vcount");
         var preview = document.getElementById("preview");
         var caption = document.getElementById("caption");
         var adminKey = document.getElementById("admin-key");
@@ -83,73 +74,69 @@
         var publishStatus = document.getElementById("publish-status");
 
         var openId = sessionStorage.getItem("tiktok_open_id") || "";
-
         if (!openId) {
           account.textContent = "Not connected to TikTok.";
           signedOut.style.display = "block";
           return;
         }
-
         account.textContent =
           "Connected to TikTok" + (openId ? " (open_id " + openId.slice(0, 8) + "…)" : "") + ".";
         reviewBlock.style.display = "block";
-        var videos = cfg.DEMO_VIDEOS || [
-          {
-            title: "Rappel court",
-            url: cfg.DEMO_VIDEO_URL,
-            caption: cfg.DEMO_CAPTION,
-          },
-        ];
-        var selectedVideo = videos[0];
+
+        var base = (cfg.VIDEO_BASE || "").replace(/\/$/, "");
+        var videos = [];
+        var selected = null;
 
         function loadVideo(index) {
-          selectedVideo = videos[index] || videos[0];
-          preview.src = selectedVideo.url;
-          caption.value = selectedVideo.caption || "";
+          selected = videos[index] || videos[0];
+          if (!selected) return;
+          preview.src = selected.url;
+          caption.value = selected.caption || "";
           publishStatus.textContent = "";
         }
 
-        videos.forEach(function (video, index) {
-          var option = document.createElement("option");
-          option.value = String(index);
-          option.textContent = video.title || "Video " + (index + 1);
-          videoChoice.appendChild(option);
-        });
-        videoChoice.addEventListener("change", function () {
-          loadVideo(Number(videoChoice.value));
-        });
-        loadVideo(0);
+        // Charge le manifeste : les 95 vraies vidéos (R2) + captions.
+        fetch(cfg.MANIFEST_URL || "./manifest.json")
+          .then(function (r) { return r.json(); })
+          .then(function (m) {
+            (m.items || []).forEach(function (it) {
+              videos.push({
+                title: "#" + String(it.seq).padStart(2, "0") + " · Sourate " + it.verse,
+                url: base + "/" + it.name,
+                caption: it.caption || "",
+              });
+            });
+            vcount.textContent = videos.length;
+            videos.forEach(function (v, i) {
+              var o = document.createElement("option");
+              o.value = String(i);
+              o.textContent = v.title;
+              videoChoice.appendChild(o);
+            });
+            videoChoice.addEventListener("change", function () { loadVideo(Number(videoChoice.value)); });
+            loadVideo(0);
+          })
+          .catch(function (e) { publishStatus.textContent = "Manifest load error: " + e; });
 
         publishBtn.addEventListener("click", function () {
+          if (!selected) return;
           publishBtn.disabled = true;
-          publishStatus.textContent = "Initializing upload to TikTok…";
+          publishStatus.textContent = "Sending to TikTok…";
           fetch(cfg.WORKER_URL + "/publish", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Admin-Key": adminKey.value,
-            },
-            body: JSON.stringify({
-              video_url: selectedVideo.url,
-              caption: caption.value,
-            }),
+            headers: { "Content-Type": "application/json", "X-Admin-Key": adminKey.value },
+            body: JSON.stringify({ video_url: selected.url, caption: caption.value }),
           })
             .then(function (r) { return r.json(); })
             .then(function (data) {
               if (data.error || !data.publish_id) {
                 publishBtn.disabled = false;
-                publishStatus.textContent =
-                  "Publish failed: " + JSON.stringify(data.detail || data.error || data);
+                publishStatus.textContent = "Publish failed: " + JSON.stringify(data.detail || data.error || data);
                 return;
               }
-              publishStatus.textContent =
-                "Sent to TikTok ✓ publish_id " + data.publish_id +
-                " — in sandbox the post is private to your account.";
+              publishStatus.textContent = "Sent to TikTok ✓ publish_id " + data.publish_id + ".";
             })
-            .catch(function (e) {
-              publishBtn.disabled = false;
-              publishStatus.textContent = "Network error: " + e;
-            });
+            .catch(function (e) { publishBtn.disabled = false; publishStatus.textContent = "Network error: " + e; });
         });
       })();
     </script>
