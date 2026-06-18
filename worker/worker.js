@@ -1,76 +1,66 @@
 /**
- * Versets Clairs — Worker TikTok (Cloudflare Workers)
- * ----------------------------------------------------
- * Petit backend OAuth + Content Posting API pour la démo de review TikTok.
- * Le client_secret reste ici (variable d'env / secret Wrangler), jamais côté front.
+ * Versets Clairs — Worker TikTok + Scheduler (Cloudflare Workers)
+ * ---------------------------------------------------------------
+ * - OAuth (client_secret jamais côté front), tokens stockés en KV + refresh auto.
+ * - File d'attente de publications programmées + Cron Trigger qui poste à l'heure dite
+ *   (TikTok n'a PAS de programmation native : on la fait nous-mêmes via Direct Post).
  *
- * Endpoints (POST, JSON) :
- *   /exchange  { code }                       -> { access_token, open_id, scope, expires_in }
- *   /publish   { access_token, video_url, caption } -> { publish_id }
- *   /status    { access_token, publish_id }   -> statut de publication
+ * Bindings requis (wrangler.toml) :
+ *   KV namespace  -> env.VC
+ *   Vars          -> REDIRECT_URI, VIDEO_BASE, ALLOWED_ORIGIN
+ *   Secrets       -> CLIENT_KEY, CLIENT_SECRET, ADMIN_KEY
+ *   Cron          -> ex "*\/5 * * * *"
  *
- * Variables d'environnement requises (Wrangler secrets) :
- *   CLIENT_KEY, CLIENT_SECRET, REDIRECT_URI
+ * Endpoints (POST JSON) :
+ *   /exchange  { code }                          (public) -> stocke les tokens
+ *   /me                                          (admin)  -> état connexion
+ *   /publish   { name|video_url, caption }       (admin)  -> Direct Post immédiat
+ *   /queue/list                                  (admin)  -> file complète
+ *   /queue/add { name|video_url, caption, scheduled_at } (admin)
+ *   /queue/remove { id }                         (admin)
+ *   /status    { publish_id }                    (admin)  -> statut TikTok
  */
 
 const TOKEN_URL = "https://open.tiktokapis.com/v2/oauth/token/";
 const INIT_URL = "https://open.tiktokapis.com/v2/post/publish/video/init/";
 const STATUS_URL = "https://open.tiktokapis.com/v2/post/publish/status/fetch/";
 
-// Origine autorisée à appeler le Worker (le site GitHub Pages).
-const ALLOWED_ORIGIN = "https://probe2ka3.github.io";
-
-function cors(extra = {}) {
+function cors(env) {
   return {
-    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+    "Access-Control-Allow-Origin": env.ALLOWED_ORIGIN || "*",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-    ...extra,
+    "Access-Control-Allow-Headers": "Content-Type, X-Admin-Key",
   };
 }
-
-function json(data, status = 200) {
+function json(data, env, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { "Content-Type": "application/json", ...cors() },
+    headers: { "Content-Type": "application/json", ...cors(env) },
   });
 }
 
-export default {
-  async fetch(request, env) {
-    if (request.method === "OPTIONS") {
-      return new Response(null, { headers: cors() });
-    }
-    if (request.method !== "POST") {
-      return json({ error: "method_not_allowed" }, 405);
-    }
+// ---------- KV helpers ----------
+async function getTokens(env) {
+  const raw = await env.VC.get("tokens");
+  return raw ? JSON.parse(raw) : null;
+}
+async function putTokens(env, t) {
+  await env.VC.put("tokens", JSON.stringify(t));
+}
+async function getQueue(env) {
+  const raw = await env.VC.get("queue");
+  return raw ? JSON.parse(raw) : [];
+}
+async function putQueue(env, q) {
+  await env.VC.put("queue", JSON.stringify(q));
+}
 
-    const url = new URL(request.url);
-    let body = {};
-    try {
-      body = await request.json();
-    } catch {
-      return json({ error: "invalid_json" }, 400);
-    }
-
-    try {
-      if (url.pathname === "/exchange") return await exchange(body, env);
-      if (url.pathname === "/publish") return await publish(body, env);
-      if (url.pathname === "/status") return await status(body, env);
-      return json({ error: "not_found" }, 404);
-    } catch (err) {
-      return json({ error: "server_error", detail: String(err) }, 500);
-    }
-  },
-};
-
-// 1) Échange du code d'autorisation contre un access_token (utilise le secret).
-async function exchange(body, env) {
-  if (!body.code) return json({ error: "missing_code" }, 400);
+// ---------- OAuth ----------
+async function exchange(code, env) {
   const form = new URLSearchParams({
     client_key: env.CLIENT_KEY,
     client_secret: env.CLIENT_SECRET,
-    code: body.code,
+    code,
     grant_type: "authorization_code",
     redirect_uri: env.REDIRECT_URI,
   });
@@ -79,38 +69,78 @@ async function exchange(body, env) {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: form,
   });
-  const data = await r.json();
-  if (data.error) return json({ error: data.error, detail: data.error_description }, 400);
-  return json({
-    access_token: data.access_token,
-    open_id: data.open_id,
-    scope: data.scope,
-    expires_in: data.expires_in,
-  });
+  const d = await r.json();
+  if (d.error) throw new Error(d.error_description || d.error);
+  const now = Date.now();
+  const tokens = {
+    access_token: d.access_token,
+    refresh_token: d.refresh_token,
+    open_id: d.open_id,
+    scope: d.scope,
+    expires_at: now + (d.expires_in || 86400) * 1000,
+    refresh_expires_at: now + (d.refresh_expires_in || 31536000) * 1000,
+  };
+  await putTokens(env, tokens);
+  return tokens;
 }
 
-// 2) Publication directe (FILE_UPLOAD) : init -> PUT des octets vidéo.
-async function publish(body, env) {
-  const { access_token, video_url, caption } = body;
-  if (!access_token || !video_url) return json({ error: "missing_params" }, 400);
+async function refresh(env, tokens) {
+  const form = new URLSearchParams({
+    client_key: env.CLIENT_KEY,
+    client_secret: env.CLIENT_SECRET,
+    grant_type: "refresh_token",
+    refresh_token: tokens.refresh_token,
+  });
+  const r = await fetch(TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: form,
+  });
+  const d = await r.json();
+  if (d.error) throw new Error(d.error_description || d.error);
+  const now = Date.now();
+  const t = {
+    access_token: d.access_token,
+    refresh_token: d.refresh_token || tokens.refresh_token,
+    open_id: d.open_id || tokens.open_id,
+    scope: d.scope || tokens.scope,
+    expires_at: now + (d.expires_in || 86400) * 1000,
+    refresh_expires_at: now + (d.refresh_expires_in || 31536000) * 1000,
+  };
+  await putTokens(env, t);
+  return t;
+}
 
-  // Récupère la vidéo (hébergée sur le domaine vérifié) pour connaître sa taille.
-  const vid = await fetch(video_url);
-  if (!vid.ok) return json({ error: "video_fetch_failed", status: vid.status }, 400);
+// access_token valide (refresh si < 2 min de marge)
+async function validToken(env) {
+  let t = await getTokens(env);
+  if (!t) throw new Error("not_connected");
+  if (Date.now() > t.expires_at - 120000) t = await refresh(env, t);
+  return t;
+}
+
+// ---------- Content Posting (FILE_UPLOAD) ----------
+function resolveVideoUrl(env, item) {
+  if (item.video_url) return item.video_url;
+  return (env.VIDEO_BASE || "").replace(/\/$/, "") + "/" + item.name;
+}
+
+async function publishOne(env, accessToken, videoUrl, caption) {
+  const vid = await fetch(videoUrl);
+  if (!vid.ok) throw new Error("video_fetch_failed_" + vid.status);
   const bytes = new Uint8Array(await vid.arrayBuffer());
   const size = bytes.byteLength;
 
-  // Init : un seul chunk (vidéo de démo courte < 64 Mo).
   const initRes = await fetch(INIT_URL, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${access_token}`,
+      Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json; charset=UTF-8",
     },
     body: JSON.stringify({
       post_info: {
         title: caption || "",
-        privacy_level: "SELF_ONLY", // sandbox : contenu privé (créateur seul)
+        privacy_level: "SELF_ONLY", // sandbox / app non auditée : privé
         disable_comment: false,
         disable_duet: false,
         disable_stitch: false,
@@ -124,14 +154,10 @@ async function publish(body, env) {
     }),
   });
   const initData = await initRes.json();
-  if (initData.error && initData.error.code && initData.error.code !== "ok") {
-    return json({ error: "init_failed", detail: initData.error }, 400);
-  }
   const uploadUrl = initData.data && initData.data.upload_url;
   const publishId = initData.data && initData.data.publish_id;
-  if (!uploadUrl) return json({ error: "no_upload_url", detail: initData }, 400);
+  if (!uploadUrl) throw new Error("init_failed_" + JSON.stringify(initData.error || initData));
 
-  // PUT des octets vidéo vers l'upload_url fourni par TikTok.
   const put = await fetch(uploadUrl, {
     method: "PUT",
     headers: {
@@ -141,23 +167,120 @@ async function publish(body, env) {
     },
     body: bytes,
   });
-  if (!put.ok && put.status !== 201) {
-    return json({ error: "upload_failed", status: put.status }, 400);
-  }
-  return json({ publish_id: publishId, video_size: size });
+  if (!put.ok && put.status !== 201) throw new Error("upload_failed_" + put.status);
+  return publishId;
 }
 
-// 3) Statut de la publication.
-async function status(body, env) {
-  const { access_token, publish_id } = body;
-  if (!access_token || !publish_id) return json({ error: "missing_params" }, 400);
-  const r = await fetch(STATUS_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-      "Content-Type": "application/json; charset=UTF-8",
-    },
-    body: JSON.stringify({ publish_id }),
-  });
-  return json(await r.json());
+// ---------- HTTP ----------
+function adminOk(request, env) {
+  return request.headers.get("X-Admin-Key") === env.ADMIN_KEY;
 }
+
+export default {
+  async fetch(request, env) {
+    if (request.method === "OPTIONS") return new Response(null, { headers: cors(env) });
+    if (request.method !== "POST") return json({ error: "method_not_allowed" }, env, 405);
+
+    const path = new URL(request.url).pathname;
+    let body = {};
+    try { body = await request.json(); } catch { body = {}; }
+
+    try {
+      // Public : callback OAuth
+      if (path === "/exchange") {
+        if (!body.code) return json({ error: "missing_code" }, env, 400);
+        const t = await exchange(body.code, env);
+        return json({ ok: true, open_id: t.open_id, scope: t.scope }, env);
+      }
+
+      // À partir d'ici : réservé admin
+      if (!adminOk(request, env)) return json({ error: "unauthorized" }, env, 401);
+
+      if (path === "/me") {
+        const t = await getTokens(env);
+        return json({
+          connected: !!t,
+          open_id: t ? t.open_id : null,
+          scope: t ? t.scope : null,
+          expires_at: t ? t.expires_at : null,
+        }, env);
+      }
+
+      if (path === "/publish") {
+        const t = await validToken(env);
+        const url = resolveVideoUrl(env, body);
+        const publishId = await publishOne(env, t.access_token, url, body.caption || "");
+        return json({ ok: true, publish_id: publishId }, env);
+      }
+
+      if (path === "/queue/list") {
+        return json({ queue: await getQueue(env) }, env);
+      }
+      if (path === "/queue/add") {
+        if (!body.name && !body.video_url) return json({ error: "missing_video" }, env, 400);
+        if (!body.scheduled_at) return json({ error: "missing_scheduled_at" }, env, 400);
+        const q = await getQueue(env);
+        const item = {
+          id: (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
+          name: body.name || null,
+          video_url: body.video_url || null,
+          caption: body.caption || "",
+          scheduled_at: Number(body.scheduled_at), // epoch ms
+          status: "pending",
+          publish_id: null,
+          posted_at: null,
+          error: null,
+        };
+        q.push(item);
+        q.sort((a, b) => a.scheduled_at - b.scheduled_at);
+        await putQueue(env, q);
+        return json({ ok: true, item }, env);
+      }
+      if (path === "/queue/remove") {
+        const q = (await getQueue(env)).filter((x) => x.id !== body.id);
+        await putQueue(env, q);
+        return json({ ok: true }, env);
+      }
+      if (path === "/status") {
+        const t = await validToken(env);
+        const r = await fetch(STATUS_URL, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${t.access_token}`, "Content-Type": "application/json; charset=UTF-8" },
+          body: JSON.stringify({ publish_id: body.publish_id }),
+        });
+        return json(await r.json(), env);
+      }
+
+      return json({ error: "not_found" }, env, 404);
+    } catch (e) {
+      return json({ error: "server_error", detail: String(e.message || e) }, env, 500);
+    }
+  },
+
+  // Cron Trigger : poste les vidéos dues.
+  async scheduled(event, env, ctx) {
+    const q = await getQueue(env);
+    const due = q.filter((x) => x.status === "pending" && x.scheduled_at <= Date.now());
+    if (!due.length) return;
+    let token;
+    try { token = await validToken(env); }
+    catch (e) {
+      // pas de token : marque les dues en échec explicite
+      for (const it of due) { it.status = "failed"; it.error = "not_connected"; }
+      await putQueue(env, q);
+      return;
+    }
+    for (const it of due) {
+      try {
+        const url = resolveVideoUrl(env, it);
+        it.publish_id = await publishOne(env, token.access_token, url, it.caption);
+        it.status = "posted";
+        it.posted_at = Date.now();
+      } catch (e) {
+        it.status = "failed";
+        it.error = String(e.message || e);
+      }
+      await putQueue(env, q); // sauvegarde après chaque post (idempotence)
+    }
+  },
+};

@@ -2,11 +2,24 @@ name = "versets-clairs-tiktok"
 main = "worker.js"
 compatibility_date = "2024-11-01"
 
-# Variable NON sensible (le client_key est public).
+# Variables NON sensibles
 [vars]
 REDIRECT_URI = "https://probe2ka3.github.io/versets-clairs-publisher/auth/tiktok/callback.html"
+ALLOWED_ORIGIN = "https://probe2ka3.github.io"
+# Base publique où sont hébergées les vidéos (Cloudflare R2). Ex : https://pub-xxxx.r2.dev
+VIDEO_BASE = "REMPLACER_PAR_BASE_R2_PUBLIQUE"
 
-# CLIENT_KEY et CLIENT_SECRET sont posés comme SECRETS (jamais dans ce fichier) :
+# Cron Trigger : vérifie la file d'attente toutes les 5 minutes et poste les dues.
+[triggers]
+crons = ["*/5 * * * *"]
+
+# Stockage KV (tokens + file d'attente).
+# Créer : npx wrangler kv namespace create VC  -> coller l'id ci-dessous.
+[[kv_namespaces]]
+binding = "VC"
+id = "REMPLACER_PAR_ID_KV"
+
+# Secrets (JAMAIS ici) :
 #   npx wrangler secret put CLIENT_KEY
 #   npx wrangler secret put CLIENT_SECRET
-# (CLIENT_KEY pourrait être en clair, mais on le met en secret par simplicité.)
+#   npx wrangler secret put ADMIN_KEY     # mot de passe simple pour l'UI de prog

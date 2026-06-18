@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Programmation | Versets Clairs Publisher</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <style>
+      .sched-wrap { max-width: 1000px; margin: 0 auto; padding: 24px; }
+      .row { display:grid; grid-template-columns: 40px 1fr 230px 150px 90px; gap:10px;
+             align-items:start; padding:10px 0; border-bottom:1px solid #2a2a3a; }
+      .row textarea { width:100%; min-height:64px; font-size:12px; }
+      .row input[type=datetime-local] { width:100%; }
+      .muted { opacity:.7; font-size:12px; }
+      .bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:14px 0; }
+      .pill { font-size:11px; padding:2px 8px; border-radius:999px; background:#2a2a3a; }
+      .ok { color:#10b981; } .pending { color:#f59e0b; } .failed { color:#ef4444; }
+      input, textarea, select { background:#15151f; color:#eee; border:1px solid #333; border-radius:8px; padding:6px; }
+      #queue .row { grid-template-columns: 1fr 180px 90px 90px; }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./index.html"><span class="brand-mark">VC</span><span>Versets Clairs Publisher</span></a>
+      <nav><a href="./app.html">Publier</a><a href="./privacy.html">Privacy</a></nav>
+    </header>
+
+    <main class="sched-wrap">
+      <h1>Programmation des publications</h1>
+      <p class="muted">
+        Charge automatiquement les vidéos + captions (manifest.json). Programme via le
+        Worker (cron). Rappel : tant que l'app n'est pas approuvée par TikTok, les posts
+        sont privés (sandbox).
+      </p>
+
+      <div class="bar">
+        <label>Clé admin <input id="adminkey" type="password" placeholder="ADMIN_KEY du Worker" /></label>
+        <button id="save-key" class="button" type="button">OK</button>
+        <span id="conn" class="pill">…</span>
+      </div>
+
+      <div class="bar">
+        <button id="autoplan" class="button secondary" type="button">Auto-planifier (heures de pointe)</button>
+        <label>à partir du <input id="startdate" type="date" /></label>
+        <label><input id="perday" type="number" value="4" min="1" max="10" style="width:54px" /> / jour</label>
+        <button id="queue-all" class="button" type="button">Tout mettre en file</button>
+        <button id="refresh-q" class="button secondary" type="button">Rafraîchir la file</button>
+      </div>
+
+      <h2>Vidéos prêtes (<span id="count">0</span>)</h2>
+      <div id="list"></div>
+
+      <h2 style="margin-top:32px">File d'attente</h2>
+      <div id="queue"><p class="muted">—</p></div>
+    </main>
+
+    <script src="./config.js"></script>
+    <script>
+      var cfg = window.VC_CONFIG || {};
+      var WORKER = (cfg.WORKER_URL || "").replace(/\/$/, "");
+      var manifest = [];
+
+      function adminKey() { return sessionStorage.getItem("vc_admin_key") || ""; }
+      function api(path, body) {
+        return fetch(WORKER + path, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Admin-Key": adminKey() },
+          body: JSON.stringify(body || {}),
+        }).then(function (r) { return r.json(); });
+      }
+      function dtLocalValue(ms) {
+        var d = new Date(ms); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        return d.toISOString().slice(0, 16);
+      }
+      function parseDt(v) { return v ? new Date(v).getTime() : 0; }
+
+      document.getElementById("save-key").onclick = function () {
+        sessionStorage.setItem("vc_admin_key", document.getElementById("adminkey").value.trim());
+        checkConn();
+      };
+      function checkConn() {
+        var c = document.getElementById("conn");
+        if (!WORKER) { c.textContent = "WORKER_URL manquant dans config.js"; return; }
+        api("/me").then(function (d) {
+          if (d.error) { c.textContent = "Worker: " + d.error; c.className = "pill failed"; return; }
+          c.textContent = d.connected ? ("TikTok connecté ✓ (" + (d.open_id || "").slice(0,6) + "…)") : "TikTok non connecté";
+          c.className = "pill " + (d.connected ? "ok" : "pending");
+        }).catch(function () { c.textContent = "Worker injoignable"; c.className = "pill failed"; });
+      }
+
+      // Charge le manifeste (vidéos + captions auto)
+      fetch("./manifest.json").then(function (r) { return r.json(); }).then(function (m) {
+        manifest = m.items || [];
+        document.getElementById("count").textContent = manifest.length;
+        renderList();
+      });
+
+      function renderList() {
+        var el = document.getElementById("list");
+        el.innerHTML = "";
+        manifest.forEach(function (it, i) {
+          var row = document.createElement("div"); row.className = "row";
+          row.innerHTML =
+            '<div class="muted">' + String(it.seq).padStart(2, "0") + "</div>" +
+            '<textarea data-i="' + i + '">' + escapeHtml(it.caption) + "</textarea>" +
+            '<input type="datetime-local" data-dt="' + i + '" />' +
+            '<div class="muted">' + it.verse + "<br>" + (it.peak_hours || []).join(" ") + "</div>" +
+            '<button class="button" type="button" data-q="' + i + '">File</button>';
+          el.appendChild(row);
+        });
+        el.querySelectorAll("[data-q]").forEach(function (b) {
+          b.onclick = function () { queueOne(parseInt(b.getAttribute("data-q"), 10), b); };
+        });
+      }
+      function escapeHtml(s) { return (s || "").replace(/[&<>]/g, function (c) { return { "&":"&amp;","<":"&lt;",">":"&gt;" }[c]; }); }
+
+      // Auto-plan : répartit selon les heures de pointe, N par jour, à partir d'une date.
+      document.getElementById("autoplan").onclick = function () {
+        var perday = parseInt(document.getElementById("perday").value, 10) || 4;
+        var start = document.getElementById("startdate").value;
+        var base = start ? new Date(start + "T00:00") : new Date(Date.now() + 86400000);
+        var dts = document.querySelectorAll("[data-dt]");
+        manifest.forEach(function (it, i) {
+          var hours = (it.peak_hours && it.peak_hours.length) ? it.peak_hours : ["09:00","13:00","18:00","21:00"];
+          var day = Math.floor(i / perday);
+          var slot = i % perday;
+          var hhmm = hours[slot % hours.length].split(":");
+          var d = new Date(base.getTime()); d.setDate(d.getDate() + day);
+          d.setHours(parseInt(hhmm[0],10), parseInt(hhmm[1],10), 0, 0);
+          dts[i].value = dtLocalValue(d.getTime());
+        });
+      };
+
+      function captionFor(i) { return document.querySelector('textarea[data-i="' + i + '"]').value; }
+      function dtFor(i) { return parseDt(document.querySelector('input[data-dt="' + i + '"]').value); }
+
+      function queueOne(i, btn) {
+        var when = dtFor(i);
+        if (!when) { alert("Choisis une date/heure (ou Auto-planifier)."); return; }
+        if (btn) btn.disabled = true;
+        return api("/queue/add", { name: manifest[i].name, caption: captionFor(i), scheduled_at: when })
+          .then(function (d) {
+            if (d.error) { alert("Erreur: " + d.error); if (btn) btn.disabled = false; }
+            else { if (btn) btn.textContent = "✓"; loadQueue(); }
+          });
+      }
+
+      document.getElementById("queue-all").onclick = function () {
+        var chain = Promise.resolve();
+        manifest.forEach(function (it, i) {
+          if (dtFor(i)) chain = chain.then(function () { return queueOne(i, null); });
+        });
+        chain.then(loadQueue);
+      };
+
+      document.getElementById("refresh-q").onclick = loadQueue;
+      function loadQueue() {
+        api("/queue/list").then(function (d) {
+          var el = document.getElementById("queue");
+          var q = (d && d.queue) || [];
+          if (!q.length) { el.innerHTML = '<p class="muted">File vide.</p>'; return; }
+          el.innerHTML = "";
+          q.forEach(function (it) {
+            var row = document.createElement("div"); row.className = "row";
+            row.innerHTML =
+              '<div class="muted">' + escapeHtml((it.caption || "").split("\n")[0]) + "</div>" +
+              '<div class="muted">' + new Date(it.scheduled_at).toLocaleString() + "</div>" +
+              '<div class="' + it.status + '">' + it.status + (it.publish_id ? " ✓" : "") + "</div>" +
+              '<button class="button secondary" type="button" data-rm="' + it.id + '">Retirer</button>';
+            el.appendChild(row);
+          });
+          el.querySelectorAll("[data-rm]").forEach(function (b) {
+            b.onclick = function () { api("/queue/remove", { id: b.getAttribute("data-rm") }).then(loadQueue); };
+          });
+        });
+      }
+
+      // init
+      document.getElementById("startdate").value = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+      checkConn(); loadQueue();
+    </script>
+  </body>
+</html>
