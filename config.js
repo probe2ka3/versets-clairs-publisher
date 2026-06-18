@@ -21,9 +21,24 @@ window.VC_CONFIG = {
   // Scopes demandés (cochés dans le portail).
   SCOPES: "user.info.basic,video.publish,video.upload",
 
-  // Vidéo de démonstration à publier (hébergée sur le même domaine vérifié).
-  DEMO_VIDEO_URL:
-    "https://probe2ka3.github.io/versets-clairs-publisher/demo-video.mp4",
-  DEMO_CAPTION:
-    "Verset clair — court rappel. #fyp #coran #rappel #versetsclairs",
+  // Vidéos de démonstration à publier (hébergées sur le même domaine vérifié).
+  DEMO_VIDEOS: [
+    {
+      title: "Rappel court",
+      url: "https://probe2ka3.github.io/versets-clairs-publisher/demo-video.mp4",
+      caption: "Verset clair — court rappel. #fyp #coran #rappel #versetsclairs",
+    },
+    {
+      title: "Sourate 2, verset 163",
+      url: "https://probe2ka3.github.io/versets-clairs-publisher/demo-video-2.mp4",
+      caption:
+        "Un verset à écouter avec attention.\nEt votre Divinité est une divinité unique.\nÀ partir de Sourate 2, verset 163.\n\n#fyp #islam #versetdujour #coran #rappel",
+    },
+    {
+      title: "Sourate 2, verset 43",
+      url: "https://probe2ka3.github.io/versets-clairs-publisher/demo-video-3.mp4",
+      caption:
+        "Un verset pour nourrir la réflexion.\nEt accomplissez la prière, et acquittez l'aumône, et inclinez-vous avec ceux qui s’inclinent.\nÀ partir de Sourate 2, verset 43.\n\n#fyp #quran #islam #meditation #versetsclairs",
+    },
+  ],
 };

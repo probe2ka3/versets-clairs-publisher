@@ -26,11 +26,17 @@
           <p id="account">Checking TikTok connection…</p>
 
           <div id="review-block" style="display:none">
+            <label class="field-label" for="video-choice">Video</label>
+            <select id="video-choice" class="text-input"></select>
             <h2>Selected video</h2>
             <video id="preview" controls playsinline width="240"
                    style="border-radius:12px;background:#000"></video>
-            <h3>Caption</h3>
-            <p id="caption" class="caption-box"></p>
+            <label class="field-label" for="caption">Caption</label>
+            <textarea
+              id="caption"
+              class="text-input caption-editor"
+              rows="7"
+            ></textarea>
             <label class="field-label" for="admin-key">Admin key</label>
             <input
               id="admin-key"
@@ -69,6 +75,7 @@
         var account = document.getElementById("account");
         var reviewBlock = document.getElementById("review-block");
         var signedOut = document.getElementById("signed-out");
+        var videoChoice = document.getElementById("video-choice");
         var preview = document.getElementById("preview");
         var caption = document.getElementById("caption");
         var adminKey = document.getElementById("admin-key");
@@ -86,8 +93,32 @@
         account.textContent =
           "Connected to TikTok" + (openId ? " (open_id " + openId.slice(0, 8) + "…)" : "") + ".";
         reviewBlock.style.display = "block";
-        preview.src = cfg.DEMO_VIDEO_URL;
-        caption.textContent = cfg.DEMO_CAPTION;
+        var videos = cfg.DEMO_VIDEOS || [
+          {
+            title: "Rappel court",
+            url: cfg.DEMO_VIDEO_URL,
+            caption: cfg.DEMO_CAPTION,
+          },
+        ];
+        var selectedVideo = videos[0];
+
+        function loadVideo(index) {
+          selectedVideo = videos[index] || videos[0];
+          preview.src = selectedVideo.url;
+          caption.value = selectedVideo.caption || "";
+          publishStatus.textContent = "";
+        }
+
+        videos.forEach(function (video, index) {
+          var option = document.createElement("option");
+          option.value = String(index);
+          option.textContent = video.title || "Video " + (index + 1);
+          videoChoice.appendChild(option);
+        });
+        videoChoice.addEventListener("change", function () {
+          loadVideo(Number(videoChoice.value));
+        });
+        loadVideo(0);
 
         publishBtn.addEventListener("click", function () {
           publishBtn.disabled = true;
@@ -99,8 +130,8 @@
               "X-Admin-Key": adminKey.value,
             },
             body: JSON.stringify({
-              video_url: cfg.DEMO_VIDEO_URL,
-              caption: cfg.DEMO_CAPTION,
+              video_url: selectedVideo.url,
+              caption: caption.value,
             }),
           })
             .then(function (r) { return r.json(); })

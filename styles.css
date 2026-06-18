@@ -145,6 +145,14 @@ p {
   font: inherit;
 }
 
+.caption-editor {
+  min-height: 150px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
 .button {
   display: inline-flex;
   align-items: center;
