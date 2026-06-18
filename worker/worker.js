@@ -22,6 +22,7 @@
  */
 
 const TOKEN_URL = "https://open.tiktokapis.com/v2/oauth/token/";
+const CREATOR_INFO_URL = "https://open.tiktokapis.com/v2/post/publish/creator_info/query/";
 const INIT_URL = "https://open.tiktokapis.com/v2/post/publish/video/init/";
 const STATUS_URL = "https://open.tiktokapis.com/v2/post/publish/status/fetch/";
 
@@ -126,6 +127,25 @@ function resolveVideoUrl(env, item) {
 }
 
 async function publishOne(env, accessToken, videoUrl, caption) {
+  const creatorRes = await fetch(CREATOR_INFO_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json; charset=UTF-8",
+    },
+  });
+  const creatorData = await creatorRes.json();
+  const creatorError = creatorData.error && creatorData.error.code !== "ok";
+  if (!creatorRes.ok || creatorError) {
+    throw new Error("creator_info_failed_" + JSON.stringify(creatorData.error || creatorData));
+  }
+  const creator = creatorData.data || {};
+  const privacyOptions = creator.privacy_level_options || [];
+  const privacyLevel = privacyOptions.includes("SELF_ONLY")
+    ? "SELF_ONLY"
+    : privacyOptions[privacyOptions.length - 1];
+  if (!privacyLevel) throw new Error("privacy_level_unavailable");
+
   const vid = await fetch(videoUrl);
   if (!vid.ok) throw new Error("video_fetch_failed_" + vid.status);
   const bytes = new Uint8Array(await vid.arrayBuffer());
@@ -140,10 +160,13 @@ async function publishOne(env, accessToken, videoUrl, caption) {
     body: JSON.stringify({
       post_info: {
         title: caption || "",
-        privacy_level: "SELF_ONLY", // sandbox / app non auditée : privé
-        disable_comment: false,
-        disable_duet: false,
-        disable_stitch: false,
+        privacy_level: privacyLevel,
+        disable_comment: Boolean(creator.comment_disabled),
+        disable_duet: Boolean(creator.duet_disabled),
+        disable_stitch: Boolean(creator.stitch_disabled),
+        brand_content_toggle: false,
+        brand_organic_toggle: false,
+        is_aigc: false,
       },
       source_info: {
         source: "FILE_UPLOAD",
