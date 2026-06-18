@@ -12,7 +12,12 @@
         <span class="brand-mark">VC</span>
         <h1>TikTok authorization</h1>
         <p id="status">Finalizing sign-in…</p>
-        <a id="continue" class="button" href="../../app.html" style="display:none">
+        <a
+          id="continue"
+          class="button"
+          href="https://probe2ka3.github.io/versets-clairs-publisher/app.html"
+          style="display:none"
+        >
           Continue to publisher
         </a>
         <a id="retry" class="button secondary" href="../../index.html" style="display:none">
@@ -66,6 +71,10 @@
             if (data.scope) sessionStorage.setItem("tiktok_scope", data.scope);
             statusEl.textContent = "Connected to TikTok. You can now publish.";
             cont.style.display = "inline-flex";
+            setTimeout(function () {
+              window.location.href =
+                "https://probe2ka3.github.io/versets-clairs-publisher/app.html";
+            }, 1200);
           })
           .catch(function (e) {
             fail("Network error during token exchange: " + e);

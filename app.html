@@ -31,6 +31,14 @@
                    style="border-radius:12px;background:#000"></video>
             <h3>Caption</h3>
             <p id="caption" class="caption-box"></p>
+            <label class="field-label" for="admin-key">Admin key</label>
+            <input
+              id="admin-key"
+              class="text-input"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Cloudflare admin key"
+            />
 
             <div class="actions">
               <button id="publish-btn" class="button" type="button">
@@ -63,13 +71,13 @@
         var signedOut = document.getElementById("signed-out");
         var preview = document.getElementById("preview");
         var caption = document.getElementById("caption");
+        var adminKey = document.getElementById("admin-key");
         var publishBtn = document.getElementById("publish-btn");
         var publishStatus = document.getElementById("publish-status");
 
-        var token = sessionStorage.getItem("tiktok_access_token");
         var openId = sessionStorage.getItem("tiktok_open_id") || "";
 
-        if (!token) {
+        if (!openId) {
           account.textContent = "Not connected to TikTok.";
           signedOut.style.display = "block";
           return;
@@ -86,9 +94,11 @@
           publishStatus.textContent = "Initializing upload to TikTok…";
           fetch(cfg.WORKER_URL + "/publish", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              "X-Admin-Key": adminKey.value,
+            },
             body: JSON.stringify({
-              access_token: token,
               video_url: cfg.DEMO_VIDEO_URL,
               caption: cfg.DEMO_CAPTION,
             }),

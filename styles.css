@@ -126,6 +126,25 @@ p {
   margin-top: 32px;
 }
 
+.field-label {
+  display: block;
+  margin: 22px 0 8px;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.text-input {
+  width: min(100%, 420px);
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: white;
+  color: var(--ink);
+  font: inherit;
+}
+
 .button {
   display: inline-flex;
   align-items: center;
