@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Publisher | Versets Clairs</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./index.html" aria-label="Versets Clairs Publisher home">
+        <span class="brand-mark">VC</span>
+        <span>Versets Clairs Publisher</span>
+      </a>
+      <nav aria-label="Legal pages">
+        <a href="./privacy.html">Privacy</a>
+        <a href="./terms.html">Terms</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Step 2 · Review &amp; publish</p>
+          <h1>Publish a reviewed video to your TikTok account.</h1>
+          <p id="account">Checking TikTok connection…</p>
+
+          <div id="review-block" style="display:none">
+            <h2>Selected video</h2>
+            <video id="preview" controls playsinline width="240"
+                   style="border-radius:12px;background:#000"></video>
+            <h3>Caption</h3>
+            <p id="caption" class="caption-box"></p>
+
+            <div class="actions">
+              <button id="publish-btn" class="button" type="button">
+                Direct Post to TikTok
+              </button>
+              <a class="button secondary" href="./index.html">Disconnect</a>
+            </div>
+            <p id="publish-status" class="muted-note"></p>
+          </div>
+
+          <div id="signed-out" style="display:none">
+            <a class="button" href="./index.html">Sign in with TikTok first</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Versets Clairs Publisher</span>
+      <a href="./privacy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+    </footer>
+
+    <script src="./config.js"></script>
+    <script>
+      (function () {
+        var cfg = window.VC_CONFIG || {};
+        var account = document.getElementById("account");
+        var reviewBlock = document.getElementById("review-block");
+        var signedOut = document.getElementById("signed-out");
+        var preview = document.getElementById("preview");
+        var caption = document.getElementById("caption");
+        var publishBtn = document.getElementById("publish-btn");
+        var publishStatus = document.getElementById("publish-status");
+
+        var token = sessionStorage.getItem("tiktok_access_token");
+        var openId = sessionStorage.getItem("tiktok_open_id") || "";
+
+        if (!token) {
+          account.textContent = "Not connected to TikTok.";
+          signedOut.style.display = "block";
+          return;
+        }
+
+        account.textContent =
+          "Connected to TikTok" + (openId ? " (open_id " + openId.slice(0, 8) + "…)" : "") + ".";
+        reviewBlock.style.display = "block";
+        preview.src = cfg.DEMO_VIDEO_URL;
+        caption.textContent = cfg.DEMO_CAPTION;
+
+        publishBtn.addEventListener("click", function () {
+          publishBtn.disabled = true;
+          publishStatus.textContent = "Initializing upload to TikTok…";
+          fetch(cfg.WORKER_URL + "/publish", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              access_token: token,
+              video_url: cfg.DEMO_VIDEO_URL,
+              caption: cfg.DEMO_CAPTION,
+            }),
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data.error || !data.publish_id) {
+                publishBtn.disabled = false;
+                publishStatus.textContent =
+                  "Publish failed: " + JSON.stringify(data.detail || data.error || data);
+                return;
+              }
+              publishStatus.textContent =
+                "Sent to TikTok ✓ publish_id " + data.publish_id +
+                " — in sandbox the post is private to your account.";
+            })
+            .catch(function (e) {
+              publishBtn.disabled = false;
+              publishStatus.textContent = "Network error: " + e;
+            });
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,12 @@
+name = "versets-clairs-tiktok"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Variable NON sensible (le client_key est public).
+[vars]
+REDIRECT_URI = "https://probe2ka3.github.io/versets-clairs-publisher/auth/tiktok/callback.html"
+
+# CLIENT_KEY et CLIENT_SECRET sont posés comme SECRETS (jamais dans ce fichier) :
+#   npx wrangler secret put CLIENT_KEY
+#   npx wrangler secret put CLIENT_SECRET
+# (CLIENT_KEY pourrait être en clair, mais on le met en secret par simplicité.)

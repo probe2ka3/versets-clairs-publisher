@@ -32,27 +32,18 @@
             reviewed short-form videos and captions to the owner's TikTok account.
           </p>
           <div class="actions">
-            <a class="button" href="./auth/tiktok/callback.html">OAuth callback page</a>
+            <button id="connect-tiktok" class="button" type="button">
+              Continue with TikTok
+            </button>
             <a class="button secondary" href="./privacy.html">Read privacy policy</a>
           </div>
+          <p id="connect-note" class="muted-note"></p>
         </div>
         <div class="workflow" aria-label="Publishing workflow">
-          <div>
-            <span>1</span>
-            <p>Sign in with TikTok</p>
-          </div>
-          <div>
-            <span>2</span>
-            <p>Select a prepared MP4</p>
-          </div>
-          <div>
-            <span>3</span>
-            <p>Review caption and hashtags</p>
-          </div>
-          <div>
-            <span>4</span>
-            <p>Upload or Direct Post to TikTok</p>
-          </div>
+          <div><span>1</span><p>Sign in with TikTok</p></div>
+          <div><span>2</span><p>Select a prepared MP4</p></div>
+          <div><span>3</span><p>Review caption and hashtags</p></div>
+          <div><span>4</span><p>Upload or Direct Post to TikTok</p></div>
         </div>
       </section>
 
@@ -68,21 +59,15 @@
         <div class="details-grid">
           <article>
             <h3>TikTok Login</h3>
-            <p>
-              Login Kit is used to let the owner authorize access to their TikTok account.
-            </p>
+            <p>Login Kit is used to let the owner authorize access to their TikTok account.</p>
           </article>
           <article>
             <h3>Content Posting</h3>
-            <p>
-              The Content Posting API is used for authorized video upload and Direct Post.
-            </p>
+            <p>The Content Posting API is used for authorized video upload and Direct Post.</p>
           </article>
           <article>
             <h3>No scraping</h3>
-            <p>
-              The app does not scrape TikTok, read other users' data, or publish silently.
-            </p>
+            <p>The app does not scrape TikTok, read other users' data, or publish silently.</p>
           </article>
         </div>
       </section>
@@ -93,5 +78,31 @@
       <a href="./privacy.html">Privacy Policy</a>
       <a href="./terms.html">Terms of Service</a>
     </footer>
+
+    <script src="./config.js"></script>
+    <script>
+      // Bouton "Continue with TikTok" -> redirige vers la page d'autorisation TikTok.
+      (function () {
+        var btn = document.getElementById("connect-tiktok");
+        var note = document.getElementById("connect-note");
+        var cfg = window.VC_CONFIG || {};
+        if (!cfg.CLIENT_KEY || cfg.CLIENT_KEY.indexOf("REMPLACER") === 0) {
+          note.textContent = "Config incomplete: set CLIENT_KEY in config.js.";
+        }
+        btn.addEventListener("click", function () {
+          // state anti-CSRF, stocke pour verification au retour.
+          var state = Math.random().toString(36).slice(2) + Date.now().toString(36);
+          sessionStorage.setItem("tiktok_oauth_state", state);
+          var url =
+            "https://www.tiktok.com/v2/auth/authorize/" +
+            "?client_key=" + encodeURIComponent(cfg.CLIENT_KEY) +
+            "&scope=" + encodeURIComponent(cfg.SCOPES) +
+            "&response_type=code" +
+            "&redirect_uri=" + encodeURIComponent(cfg.REDIRECT_URI) +
+            "&state=" + encodeURIComponent(state);
+          window.location.href = url;
+        });
+      })();
+    </script>
   </body>
 </html>
