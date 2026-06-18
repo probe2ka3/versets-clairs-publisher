@@ -58,11 +58,10 @@
         })
           .then(function (r) { return r.json(); })
           .then(function (data) {
-            if (data.error || !data.access_token) {
+            if (data.error || !data.ok) {
               return fail("Token exchange failed: " + (data.detail || data.error || "unknown"));
             }
-            // Stockage de session (outil mono-utilisateur, sandbox).
-            sessionStorage.setItem("tiktok_access_token", data.access_token);
+            // Les tokens restent dans le Worker Cloudflare, jamais dans le navigateur.
             if (data.open_id) sessionStorage.setItem("tiktok_open_id", data.open_id);
             if (data.scope) sessionStorage.setItem("tiktok_scope", data.scope);
             statusEl.textContent = "Connected to TikTok. You can now publish.";
