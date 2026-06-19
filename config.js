@@ -8,8 +8,10 @@
 //   npx wrangler secret put CLIENT_SECRET
 // ============================================================
 window.VC_CONFIG = {
-  // Client key PRODUCTION (portail TikTok → Production → Credentials).
-  CLIENT_KEY: "awppijs4vpz11u1s",
+  // Client key SANDBOX (pour la review — app non encore approuvée).
+  // Après approbation TikTok : repasser sur la clé PRODUCTION "awppijs4vpz11u1s"
+  // + mettre le CLIENT_SECRET de production (régénéré) sur le Worker.
+  CLIENT_KEY: "sbawurg5htshac823m",
 
   // Worker Cloudflare déployé (sans slash final).
   WORKER_URL: "https://versets-clairs-tiktok.probe2-ka3.workers.dev",
