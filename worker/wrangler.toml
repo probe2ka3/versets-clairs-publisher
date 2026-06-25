@@ -4,8 +4,8 @@ compatibility_date = "2024-11-01"
 
 # Variables NON sensibles
 [vars]
-REDIRECT_URI = "https://probe2ka3.github.io/versets-clairs-publisher/auth/tiktok/callback.html"
-ALLOWED_ORIGIN = "https://probe2ka3.github.io"
+REDIRECT_URI = "https://versetsclairs.kassos.art/auth/tiktok/callback.html"
+ALLOWED_ORIGIN = "https://versetsclairs.kassos.art"
 # Base publique où sont hébergées les vidéos (Cloudflare R2). Ex : https://pub-xxxx.r2.dev
 VIDEO_BASE = "https://pub-8c08c849e3034768a7f988ef54ab308d.r2.dev"
 

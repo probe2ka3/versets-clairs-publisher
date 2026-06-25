@@ -1,5 +1,5 @@
 // ============================================================
-// Versets Clairs Publisher — configuration publique (PRODUCTION)
+// Kassos Versets Clairs — configuration publique (PRODUCTION)
 // ------------------------------------------------------------
 // Valeurs PUBLIQUES (transitent dans l'URL d'autorisation TikTok ou les
 // appels front). Le client_secret N'EST PAS ici : il vit uniquement dans le
@@ -18,7 +18,7 @@ window.VC_CONFIG = {
 
   // Doit correspondre EXACTEMENT à la Redirect URI enregistrée dans le portail.
   REDIRECT_URI:
-    "https://probe2ka3.github.io/versets-clairs-publisher/auth/tiktok/callback.html",
+    "https://versetsclairs.kassos.art/auth/tiktok/callback.html",
 
   // Scopes demandés (cochés dans le portail).
   SCOPES: "user.info.basic,video.publish,video.upload",
@@ -27,5 +27,5 @@ window.VC_CONFIG = {
   VIDEO_BASE: "https://pub-8c08c849e3034768a7f988ef54ab308d.r2.dev",
 
   // Manifeste des vidéos prêtes (vidéos + captions), servi sur le même domaine.
-  MANIFEST_URL: "https://probe2ka3.github.io/versets-clairs-publisher/manifest.json",
+  MANIFEST_URL: "https://versetsclairs.kassos.art/manifest.json",
 };
