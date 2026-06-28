@@ -19,43 +19,189 @@
     </header>
 
     <main class="legal-page">
-      <p class="eyebrow">Effective date: June 17, 2026</p>
+      <p class="eyebrow">Effective date: June 28, 2026 · Last updated: June 28, 2026</p>
       <h1>Terms of Service</h1>
+
+      <h2>1. Introduction and Acceptance</h2>
       <p>
-        These terms apply to the use of Kassos Versets Clairs, a private tool for
-        reviewing and publishing prepared short-form videos to TikTok.
+        These Terms of Service (the &laquo; Terms &raquo;) govern access to and use of Kassos Versets Clairs (the &laquo; Application &raquo;, &laquo; Service &raquo;), a single-owner web-based publishing workflow available at <strong>https://versetsclairs.kassos.art</strong>. The Application is operated by Rexhep Kllokoqi (the &laquo; Operator &raquo;, &laquo; we &raquo;, &laquo; us &raquo;), domiciled at Chemin de la Colline 19, 1635 La Tour-de-Tr&ecirc;me, Switzerland.
+      </p>
+      <p>
+        By accessing the Application, by initiating the TikTok sign-in flow, or by uploading or publishing any video through the Application, the user (the &laquo; User &raquo;) acknowledges that they have read, understood, and accepted these Terms in full. Users who do not accept these Terms must not access or use the Application.
+      </p>
+      <p>
+        These Terms are published in English. The English text is the binding version. The Application&rsquo;s <a href="./privacy.html">Privacy Policy</a> is incorporated into these Terms by reference.
       </p>
 
-      <h2>Purpose</h2>
+      <h2>2. Definitions</h2>
+      <ul>
+        <li><strong>&laquo; Application &raquo;</strong> means the web pages, scripts, Cloudflare Worker, and supporting infrastructure operated under the domain <em>versetsclairs.kassos.art</em>.</li>
+        <li><strong>&laquo; Operator &raquo;</strong> means Rexhep Kllokoqi, the sole owner and operator of the Application.</li>
+        <li><strong>&laquo; User &raquo;</strong> means any natural person accessing the Application. In the current configuration, the only legitimate User is the Operator himself.</li>
+        <li><strong>&laquo; TikTok &raquo;</strong> means TikTok Pte. Ltd., TikTok Information Technologies UK Limited, TikTok Inc., and any of their affiliates, as appropriate to the jurisdiction.</li>
+        <li><strong>&laquo; User Content &raquo;</strong> means the MP4 video files and accompanying captions that the User selects in the Application for upload or publication on TikTok.</li>
+        <li><strong>&laquo; Scopes &raquo;</strong> means the OAuth 2.0 permissions requested from TikTok: <code>user.info.basic</code>, <code>video.upload</code>, and <code>video.publish</code>.</li>
+      </ul>
+
+      <h2>3. Purpose of the Application</h2>
       <p>
-        The app helps its owner authenticate with TikTok, review prepared MP4 videos and
-        captions, and upload or publish them through TikTok's approved APIs.
+        The Application provides the Operator with a lightweight, browser-based interface to:
+      </p>
+      <ol>
+        <li>Authenticate with TikTok using TikTok Login Kit (OAuth 2.0);</li>
+        <li>Browse a manifest of prepared MP4 video files (hosted in the Operator&rsquo;s Cloudflare R2 bucket) together with their pre-written captions;</li>
+        <li>Review and, if needed, lightly edit each caption before posting;</li>
+        <li>Upload the selected MP4 file to TikTok&rsquo;s Inbox as a draft (using the <code>video.upload</code> scope), or publish it directly to the Operator&rsquo;s TikTok profile (using the <code>video.publish</code> scope) via TikTok&rsquo;s Content Posting API;</li>
+        <li>Optionally schedule a future publication, processed by a Cloudflare Worker on a five-minute cron trigger.</li>
+      </ol>
+      <p>
+        The Application is a private creator tool. It is not a social network, marketplace, advertising network, or content recommendation system.
       </p>
 
-      <h2>User Responsibility</h2>
+      <h2>4. Eligibility</h2>
       <p>
-        The owner remains responsible for all content submitted through the app, including
-        video files, captions, hashtags, and compliance with TikTok's rules and applicable
-        laws.
+        The User declares that they:
+      </p>
+      <ul>
+        <li>are at least eighteen (18) years of age and have full legal capacity to enter into a binding agreement under Swiss law;</li>
+        <li>have read and accepted these Terms and the linked <a href="./privacy.html">Privacy Policy</a>;</li>
+        <li>are authorised to manage the TikTok account that they connect through the Application;</li>
+        <li>will use the Application in compliance with all applicable laws, regulations, and TikTok&rsquo;s own Community Guidelines, Terms of Service, and Developer Policy.</li>
+      </ul>
+
+      <h2>5. Account and Authentication</h2>
+      <p>
+        The Application does not maintain its own user accounts. Authentication is performed exclusively through TikTok Login Kit. The User is solely responsible for the security of their TikTok account, for keeping their credentials confidential, and for any action carried out under their TikTok session.
+      </p>
+      <p>
+        The User may revoke the Application&rsquo;s access to their TikTok account at any time, free of charge, from <a href="https://www.tiktok.com/setting/manage-account/app-permissions" target="_blank" rel="noopener">https://www.tiktok.com/setting/manage-account/app-permissions</a>. Revocation immediately invalidates all access and refresh tokens held by the Application.
       </p>
 
-      <h2>Authorized Use</h2>
+      <h2>6. Use of TikTok APIs and Permissions</h2>
       <p>
-        The app must only be used with TikTok accounts that the owner is authorized to
-        manage. It must not be used to spam, mislead users, or publish content without
-        explicit user action.
+        The Application requests only the minimum scopes required to fulfil the publishing workflow described in &sect;3:
+      </p>
+      <ul>
+        <li><code>user.info.basic</code> &ndash; to display the open ID, display name, and avatar of the authenticated TikTok account, so the User can visually confirm they are about to publish to the correct account;</li>
+        <li><code>video.upload</code> &ndash; to send the selected MP4 file to the User&rsquo;s TikTok Inbox as a draft;</li>
+        <li><code>video.publish</code> &ndash; to publish the selected MP4 file and caption directly to the User&rsquo;s TikTok profile when the User explicitly clicks the &laquo; Direct Post &raquo; button.</li>
+      </ul>
+      <p>
+        No publication occurs without the User&rsquo;s explicit and informed action inside the Application. The Application does not silently publish, schedule, or otherwise modify the User&rsquo;s TikTok account.
       </p>
 
-      <h2>Availability</h2>
+      <h2>7. User Content and Responsibility</h2>
       <p>
-        This is a lightweight private publishing workflow. The app may change, pause, or
-        stop at any time.
+        The User retains all rights, title, and interest in and to any User Content uploaded or published through the Application. The Operator does not claim ownership of any User Content.
+      </p>
+      <p>
+        The User represents and warrants that:
+      </p>
+      <ul>
+        <li>they own all necessary rights, licences, and permissions to the User Content, including any underlying music, footage, recitation, translation, or third-party material;</li>
+        <li>the User Content does not infringe any intellectual property right, right of publicity, or other right of any third party;</li>
+        <li>the User Content complies with all applicable laws, including but not limited to laws relating to defamation, privacy, hate speech, public order, and the protection of minors;</li>
+        <li>the User Content complies with TikTok&rsquo;s Community Guidelines and Content Posting policies.</li>
+      </ul>
+      <p>
+        The User is solely responsible for all User Content uploaded or published through the Application. The Operator does not pre-screen, moderate, or curate User Content beyond mechanical formatting.
       </p>
 
-      <h2>Contact</h2>
+      <h2>8. Acceptable Use Restrictions</h2>
       <p>
-        For questions about these terms, contact the app owner through the TikTok
-        developer account associated with this application.
+        The User shall not use the Application to:
+      </p>
+      <ul>
+        <li>spam, harass, mislead, or otherwise harm any other TikTok user;</li>
+        <li>publish content that violates TikTok&rsquo;s Community Guidelines, the law of Switzerland, or the law of the User&rsquo;s country of residence;</li>
+        <li>circumvent, attack, reverse engineer, or otherwise interfere with the security or integrity of TikTok&rsquo;s services or the Application;</li>
+        <li>scrape, mine, or extract data from TikTok or from any third party using the Application;</li>
+        <li>use the Application on a TikTok account that the User is not personally authorised to manage;</li>
+        <li>resell, sublicense, or otherwise commercialise access to the Application without the prior written consent of the Operator.</li>
+      </ul>
+      <p>
+        The Operator may, without notice and without liability, suspend or terminate the User&rsquo;s access to the Application in case of breach of this section.
+      </p>
+
+      <h2>9. Intellectual Property of the Application</h2>
+      <p>
+        All rights in the source code, design, branding, templates, and documentation of the Application, other than third-party components used under their respective open-source licences, belong to the Operator. Nothing in these Terms transfers any such right to the User.
+      </p>
+      <p>
+        The Application uses open-source components governed by their own licences (including, without limitation, MIT-licensed JavaScript libraries and Apache-licensed Cloudflare tooling). A list of these components is available on request to the contact email below.
+      </p>
+
+      <h2>10. Third-Party Services</h2>
+      <p>
+        The Application interoperates with the following third-party services:
+      </p>
+      <ul>
+        <li><strong>TikTok</strong> &mdash; Login Kit and Content Posting API. Use of TikTok is subject to TikTok&rsquo;s own <a href="https://www.tiktok.com/legal/terms-of-service" target="_blank" rel="noopener">Terms of Service</a> and <a href="https://www.tiktok.com/legal/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>.</li>
+        <li><strong>GitHub Pages</strong> &mdash; static hosting of the front-end of the Application.</li>
+        <li><strong>Cloudflare Workers and R2</strong> &mdash; OAuth code exchange, publication queue, and storage of prepared video files.</li>
+      </ul>
+      <p>
+        The Operator is not responsible for any act, omission, downtime, or change of terms by these third-party services. Any dispute relating to a third-party service must be addressed directly to that service.
+      </p>
+
+      <h2>11. Availability of the Service</h2>
+      <p>
+        The Application is provided on an &laquo; as-is &raquo; and &laquo; as-available &raquo; basis. The Operator does not commit to a specific uptime, response time, or service level. The Operator may modify, suspend, or discontinue all or part of the Application at any time, with or without notice, and without liability.
+      </p>
+      <p>
+        Scheduled or unscheduled maintenance, third-party outages (in particular at TikTok, GitHub, or Cloudflare), or rate-limiting enforced by TikTok may temporarily prevent the use of the Application.
+      </p>
+
+      <h2>12. Disclaimer of Warranties</h2>
+      <p>
+        To the maximum extent permitted by Swiss law, the Application is provided without any warranty, express or implied, including without limitation any warranty of merchantability, fitness for a particular purpose, non-infringement, accuracy, completeness, or absence of malware. The Operator does not warrant that the Application will be uninterrupted, error-free, or free of defects, or that defects will be corrected.
+      </p>
+
+      <h2>13. Limitation of Liability</h2>
+      <p>
+        To the maximum extent permitted by Swiss law, in no event shall the Operator be liable for any indirect, incidental, special, consequential, exemplary, or punitive damages, including loss of profits, loss of business, loss of reputation, loss of data, or loss of TikTok followers, arising out of or in connection with the use or inability to use the Application, even if the Operator has been advised of the possibility of such damages.
+      </p>
+      <p>
+        The aggregate liability of the Operator under or in connection with these Terms shall not exceed one hundred Swiss francs (CHF 100). This limitation does not apply to liability that cannot be excluded or limited by mandatory Swiss law (in particular, gross negligence and wilful misconduct).
+      </p>
+
+      <h2>14. Indemnification</h2>
+      <p>
+        The User shall indemnify, defend, and hold harmless the Operator from and against any and all claims, damages, losses, costs, and expenses (including reasonable attorneys&rsquo; fees) arising out of or related to: (i) the User Content; (ii) the User&rsquo;s breach of these Terms; (iii) the User&rsquo;s violation of any applicable law or third-party right, including TikTok&rsquo;s policies.
+      </p>
+
+      <h2>15. Term and Termination</h2>
+      <p>
+        These Terms apply for as long as the User accesses or uses the Application. The User may terminate these Terms at any time by ceasing to use the Application and by revoking the Application&rsquo;s TikTok authorisation. The Operator may terminate these Terms and the User&rsquo;s access to the Application at any time, with or without cause, with or without notice.
+      </p>
+      <p>
+        Upon termination, the provisions that by their nature are intended to survive (in particular &sect;7, &sect;9, &sect;12, &sect;13, &sect;14, and &sect;17) shall remain in full force and effect.
+      </p>
+
+      <h2>16. Changes to the Terms</h2>
+      <p>
+        These Terms may be updated from time to time. The latest version is always available at <strong>https://versetsclairs.kassos.art/terms.html</strong>. Material changes will be highlighted at the top of this page for at least thirty (30) days. Continued use of the Application after the effective date of a change constitutes acceptance of the updated Terms.
+      </p>
+
+      <h2>17. Governing Law and Jurisdiction</h2>
+      <p>
+        These Terms are governed by the substantive laws of Switzerland, without regard to its conflict-of-law rules and to the exclusion of the United Nations Convention on Contracts for the International Sale of Goods (CISG). The exclusive forum for any dispute arising out of or in connection with these Terms is the competent court of the Canton of Fribourg, Switzerland, subject to any mandatory consumer-protection provision applicable to the User.
+      </p>
+
+      <h2>18. Miscellaneous</h2>
+      <p>
+        If any provision of these Terms is held to be invalid or unenforceable, the remaining provisions shall remain in full force and effect, and the invalid provision shall be replaced by a valid provision that most closely reflects the original intent. The failure of the Operator to enforce any right or provision shall not constitute a waiver of that right or provision. These Terms constitute the entire agreement between the Operator and the User with respect to the Application and supersede all prior agreements and understandings.
+      </p>
+
+      <h2>19. Contact</h2>
+      <p>
+        Any question regarding these Terms should be sent to:
+      </p>
+      <p>
+        Rexhep Kllokoqi<br />
+        Chemin de la Colline 19<br />
+        1635 La Tour-de-Tr&ecirc;me, Switzerland<br />
+        Email: <a href="mailto:probe2.ka3@gmail.com">probe2.ka3@gmail.com</a>
       </p>
     </main>
 

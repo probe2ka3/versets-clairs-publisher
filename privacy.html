@@ -19,45 +19,200 @@
     </header>
 
     <main class="legal-page">
-      <p class="eyebrow">Effective date: June 17, 2026</p>
+      <p class="eyebrow">Effective date: June 28, 2026 · Last updated: June 28, 2026</p>
       <h1>Privacy Policy</h1>
+
+      <h2>1. Introduction</h2>
       <p>
-        Kassos Versets Clairs is used by its owner to publish prepared short-form
-        videos to TikTok. This policy explains what information is used when the TikTok
-        integration is enabled.
+        This Privacy Policy describes how Kassos Versets Clairs (the &ldquo;Application&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;, &ldquo;us&rdquo;) collects, uses, stores, and protects information when its owner uses the Application to authenticate with TikTok and publish prepared short-form videos to the owner&rsquo;s own TikTok account through the TikTok Login Kit and Content Posting API.
+      </p>
+      <p>
+        The Application is a single-owner publishing tool. It is operated by Rexhep Kllokoqi (the &ldquo;Owner&rdquo;, &ldquo;Operator&rdquo;), based in Switzerland, and is hosted at <strong>https://versetsclairs.kassos.art</strong>. The Application is not offered to the general public for account creation; only the Operator authenticates and publishes through this Application.
+      </p>
+      <p>
+        By using the Application, the Operator acknowledges that they have read, understood, and accepted this Privacy Policy. This Policy is published in English to align with TikTok&rsquo;s developer review process; the binding interpretation remains this English version.
       </p>
 
-      <h2>Information We Use</h2>
+      <h2>2. Identity and Contact of the Data Controller</h2>
       <p>
-        When the owner connects TikTok, the app may receive basic TikTok profile
-        information such as an open ID, display name, and avatar. The app also uses the
-        video files and captions selected by the owner for upload or publication.
+        Data controller for this Application:
+      </p>
+      <ul>
+        <li><strong>Name:</strong> Rexhep Kllokoqi</li>
+        <li><strong>Address:</strong> Chemin de la Colline 19, 1635 La Tour-de-Tr&ecirc;me, Fribourg, Switzerland</li>
+        <li><strong>Contact email:</strong> <a href="mailto:probe2.ka3@gmail.com">probe2.ka3@gmail.com</a></li>
+      </ul>
+      <p>
+        Any request relating to this Privacy Policy, including access, rectification, deletion, or objection requests, should be addressed to the contact email above.
       </p>
 
-      <h2>How Information Is Used</h2>
+      <h2>3. Categories of Information Processed</h2>
       <p>
-        Information is used only to authenticate the owner, upload selected videos, and
-        publish or prepare content through TikTok's Content Posting API. The app does not
-        sell personal data, run advertising profiles, or scrape TikTok content.
+        The Application processes the following categories of information, all of which relate exclusively to the Operator&rsquo;s own TikTok account:
+      </p>
+      <h3>3.1 TikTok account information</h3>
+      <p>
+        After the Operator signs in through TikTok Login Kit (OAuth 2.0), TikTok returns to the Application a set of identifiers and tokens strictly associated with the <code>user.info.basic</code> scope:
+      </p>
+      <ul>
+        <li>The TikTok <strong>open ID</strong> (an opaque user identifier specific to this Application);</li>
+        <li>The TikTok <strong>union ID</strong> (if provided by TikTok);</li>
+        <li>The TikTok <strong>display name</strong> and <strong>avatar URL</strong>;</li>
+        <li>A short-lived <strong>access token</strong> and a <strong>refresh token</strong> issued by TikTok.</li>
+      </ul>
+      <p>
+        These tokens are required to call the TikTok Content Posting API on behalf of the Operator. No follower data, no follower list, no other TikTok user&rsquo;s data, and no TikTok content authored by third parties is collected.
+      </p>
+      <h3>3.2 Video and caption content</h3>
+      <p>
+        The Application uploads MP4 video files and their associated text captions to TikTok when the Operator explicitly selects a video and clicks the publish or upload button. These video files are prepared off-platform; the Application stores their public URLs (in a Cloudflare R2 bucket controlled by the Operator) and the caption text in a static manifest. The Application does not collect any video content produced by other TikTok users.
+      </p>
+      <h3>3.3 Technical information</h3>
+      <p>
+        When the Operator interacts with the Application, standard server-side technical information is processed transiently to operate the service, including: HTTP request method and path, response code, approximate timestamp, IP address (for rate-limit and abuse protection only), and User-Agent string. This information is processed at the hosting layer (GitHub Pages and Cloudflare) and is not retained by the Application beyond what those providers retain for their own operational logs.
+      </p>
+      <h3>3.4 Information we do NOT collect</h3>
+      <ul>
+        <li>We do not collect any TikTok user&rsquo;s personal data other than the Operator&rsquo;s own profile.</li>
+        <li>We do not scrape, mine, or index public or private TikTok content.</li>
+        <li>We do not collect health, financial, biometric, or sensitive personal data within the meaning of Art. 5 lit. c of the Swiss Federal Act on Data Protection (FADP) or Art. 9 of the EU GDPR.</li>
+        <li>We do not collect information from children under the age of 16.</li>
+        <li>We do not place any third-party advertising or analytics cookies.</li>
+      </ul>
+
+      <h2>4. Purposes and Legal Basis of Processing</h2>
+      <p>
+        Each category of information is processed for one or more of the following specific purposes:
+      </p>
+      <table class="legal-table">
+        <thead>
+          <tr><th>Scope / Data</th><th>Purpose</th><th>Legal basis (FADP / GDPR)</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>user.info.basic</code> &mdash; open ID, display name, avatar</td>
+            <td>Identify the Operator&rsquo;s TikTok account in the Application interface so the Operator can confirm they are publishing to the correct account.</td>
+            <td>Performance of the agreement between the Operator and the Application (Art. 31 al. 2 lit. a FADP / Art. 6(1)(b) GDPR).</td>
+          </tr>
+          <tr>
+            <td><code>video.upload</code> &mdash; access token</td>
+            <td>Upload a reviewed MP4 video file to the Operator&rsquo;s TikTok Inbox as a draft, ready for the Operator to publish later from the TikTok mobile application if preferred.</td>
+            <td>Performance of the agreement (Art. 31 al. 2 lit. a FADP / Art. 6(1)(b) GDPR).</td>
+          </tr>
+          <tr>
+            <td><code>video.publish</code> &mdash; access token</td>
+            <td>Publish a reviewed MP4 video file together with its caption directly to the Operator&rsquo;s TikTok profile (Direct Post), after the Operator clicks the explicit publish button.</td>
+            <td>Performance of the agreement (Art. 31 al. 2 lit. a FADP / Art. 6(1)(b) GDPR).</td>
+          </tr>
+          <tr>
+            <td>Technical / log information</td>
+            <td>Operate the service, prevent abuse, ensure security and integrity.</td>
+            <td>Legitimate interest of the Operator (Art. 31 al. 1 FADP / Art. 6(1)(f) GDPR).</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        The Application does not use the data obtained from any TikTok scope for any purpose other than those listed above. In particular, the Application does not build behavioural profiles, does not perform automated decision-making producing legal effects, and does not target advertising on the basis of TikTok data.
       </p>
 
-      <h2>Sharing</h2>
+      <h2>5. How Information Is Shared</h2>
       <p>
-        Selected videos and captions are sent to TikTok only when the owner authorizes
-        the action. Data is not shared with unrelated third parties.
+        The Application is designed to minimise data sharing. Information is shared exclusively in the following situations:
+      </p>
+      <ul>
+        <li>
+          <strong>With TikTok (ByteDance Ltd. and affiliates):</strong> when the Operator publishes a video, the MP4 file and its caption are sent to TikTok&rsquo;s servers using the Content Posting API. TikTok&rsquo;s use of that data is governed by TikTok&rsquo;s own privacy policy and developer terms.
+        </li>
+        <li>
+          <strong>With GitHub, Inc. (hosting of the web pages):</strong> the static pages of the Application (index, privacy, terms, callback) are served by GitHub Pages. GitHub processes the technical information described in &sect;3.3 to operate its CDN. GitHub&rsquo;s privacy policy applies to that processing.
+        </li>
+        <li>
+          <strong>With Cloudflare, Inc. (worker and video CDN):</strong> the OAuth code exchange and the publishing logic run inside a Cloudflare Worker controlled by the Operator. Video files are served from a Cloudflare R2 bucket controlled by the Operator. Cloudflare&rsquo;s privacy policy applies to that processing.
+        </li>
+      </ul>
+      <p>
+        No information processed by the Application is sold, rented, bartered, or otherwise commercialised. The Application does not provide any data to advertising networks, data brokers, or social networks other than TikTok itself.
       </p>
 
-      <h2>Data Retention</h2>
+      <h2>6. International Data Transfers</h2>
       <p>
-        Local project files remain under the owner's control. TikTok authorization tokens
-        are used only for the integration and should be removed if access is no longer
-        needed.
+        The Application is operated from Switzerland. Information may be transmitted to and processed by TikTok, GitHub, and Cloudflare on infrastructure located outside of Switzerland and the European Economic Area, including in the United States, Ireland, and Singapore. Transfers to recipients outside of Switzerland or the EEA are protected by the appropriate safeguards published by those recipients (standard contractual clauses, adequacy decisions where applicable). The Operator may request a copy of the relevant safeguards by writing to the contact email above.
       </p>
 
-      <h2>Contact</h2>
+      <h2>7. Data Retention</h2>
       <p>
-        For privacy questions about this app, contact the app owner through the TikTok
-        developer account associated with this application.
+        The Application retains information only for as long as necessary for the purposes set out in &sect;4 of this Policy, and in accordance with the following retention rules:
+      </p>
+      <ul>
+        <li><strong>TikTok access token:</strong> retained inside a Cloudflare Workers KV namespace for the lifetime issued by TikTok (typically 24 hours) and refreshed transparently using the refresh token.</li>
+        <li><strong>TikTok refresh token:</strong> retained for up to 365 days, or until the Operator revokes the authorisation from <a href="https://www.tiktok.com/setting/manage-account/app-permissions" target="_blank" rel="noopener">https://www.tiktok.com/setting/manage-account/app-permissions</a>.</li>
+        <li><strong>Open ID, display name, avatar:</strong> retained for the duration of an active session in the Operator&rsquo;s browser (sessionStorage) and deleted when the browser tab is closed.</li>
+        <li><strong>Publication queue entries (one entry per scheduled video):</strong> retained in the Cloudflare KV namespace until the publication is completed or cancelled, then deleted within 30 days.</li>
+        <li><strong>Operational logs at the hosting layer:</strong> retained according to GitHub&rsquo;s and Cloudflare&rsquo;s own retention practices.</li>
+      </ul>
+      <p>
+        Upon written request from the Operator to the contact email, all tokens and queue entries associated with the Operator&rsquo;s TikTok account are deleted within 30 days, except where a longer retention period is required by a binding legal obligation.
+      </p>
+
+      <h2>8. Security Measures</h2>
+      <p>
+        The Application implements technical and organisational security measures appropriate to the risk presented by the processing, including:
+      </p>
+      <ul>
+        <li>All communications between the Operator&rsquo;s browser, the Application, and TikTok are protected by HTTPS (TLS 1.2 or higher).</li>
+        <li>The TikTok <code>client_secret</code> is stored exclusively as an encrypted secret inside the Cloudflare Worker; it is never exposed to the browser.</li>
+        <li>Tokens are scoped to the minimum permissions strictly required (<code>user.info.basic</code>, <code>video.publish</code>, <code>video.upload</code>).</li>
+        <li>Access to the Cloudflare account, the GitHub repository, and the TikTok developer portal is protected by strong authentication, including two-factor authentication where supported.</li>
+        <li>The Application is built without any third-party analytics, tracking, or advertising script.</li>
+      </ul>
+
+      <h2>9. Rights of the Data Subject</h2>
+      <p>
+        The Operator, as the sole data subject of the Application, has the following rights under the Swiss FADP and, where applicable, the EU GDPR:
+      </p>
+      <ul>
+        <li><strong>Right of access:</strong> obtain confirmation that personal data are being processed and a copy of those data.</li>
+        <li><strong>Right to rectification:</strong> request the correction of inaccurate or incomplete personal data.</li>
+        <li><strong>Right to erasure (&laquo; right to be forgotten &raquo;):</strong> request the deletion of personal data when no longer necessary for the purposes for which they were collected.</li>
+        <li><strong>Right to restriction of processing:</strong> request that processing be temporarily limited.</li>
+        <li><strong>Right to data portability:</strong> receive personal data in a structured, commonly used, machine-readable format.</li>
+        <li><strong>Right to object:</strong> object at any time to processing based on legitimate interest.</li>
+        <li><strong>Right to withdraw consent:</strong> withdraw any consent given to TikTok by revoking the Application&rsquo;s authorisation directly from the TikTok account settings.</li>
+        <li><strong>Right to lodge a complaint:</strong> file a complaint with the Federal Data Protection and Information Commissioner of Switzerland (FDPIC) or with the competent supervisory authority of the Operator&rsquo;s country of residence.</li>
+      </ul>
+      <p>
+        Requests are processed free of charge and answered within thirty (30) days. They may be addressed to <a href="mailto:probe2.ka3@gmail.com">probe2.ka3@gmail.com</a>.
+      </p>
+
+      <h2>10. Cookies and Local Storage</h2>
+      <p>
+        The Application does not use third-party cookies. It uses the browser&rsquo;s <code>sessionStorage</code> mechanism solely to hold the TikTok <code>state</code> parameter used to prevent cross-site request forgery during the OAuth flow, and the TikTok <code>open_id</code> and granted <code>scope</code> values for the current session. All <code>sessionStorage</code> entries are deleted when the browser tab is closed.
+      </p>
+
+      <h2>11. Children&rsquo;s Privacy</h2>
+      <p>
+        The Application is not directed to children under sixteen (16) years of age and does not knowingly process personal data of children. The Operator confirms that they are an adult capable of entering into a binding agreement under Swiss law.
+      </p>
+
+      <h2>12. Changes to This Privacy Policy</h2>
+      <p>
+        This Privacy Policy may be updated from time to time to reflect changes in the law, in TikTok&rsquo;s developer terms, or in the operation of the Application. The latest version is always available at <strong>https://versetsclairs.kassos.art/privacy.html</strong>. The &laquo; Effective date &raquo; at the top of this page indicates the version currently in force. Material changes will be highlighted at the top of this page for at least thirty (30) days.
+      </p>
+
+      <h2>13. Governing Law</h2>
+      <p>
+        This Privacy Policy is governed by Swiss law, in particular the Swiss Federal Act on Data Protection (revFADP, in force since 1 September 2023). For Operators ordinarily resident in the European Economic Area, the EU General Data Protection Regulation (GDPR) applies in addition where its territorial scope is triggered.
+      </p>
+
+      <h2>14. Contact</h2>
+      <p>
+        Any question regarding this Privacy Policy, or any request to exercise the rights listed in &sect;9, should be sent to:
+      </p>
+      <p>
+        Rexhep Kllokoqi<br />
+        Chemin de la Colline 19<br />
+        1635 La Tour-de-Tr&ecirc;me, Switzerland<br />
+        Email: <a href="mailto:probe2.ka3@gmail.com">probe2.ka3@gmail.com</a>
       </p>
     </main>
 

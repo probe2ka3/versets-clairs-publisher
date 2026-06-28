@@ -245,6 +245,55 @@ p {
   margin-top: 42px;
 }
 
+.legal-page h3 {
+  margin-top: 24px;
+  font-size: 18px;
+}
+
+.legal-page ul,
+.legal-page ol {
+  margin: 14px 0;
+  padding-left: 24px;
+}
+
+.legal-page li {
+  margin: 6px 0;
+  line-height: 1.55;
+}
+
+.legal-page code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.legal-page .legal-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 18px 0;
+  font-size: 14px;
+}
+
+.legal-page .legal-table th,
+.legal-page .legal-table td {
+  border: 1px solid var(--line);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.legal-page .legal-table th {
+  background: var(--panel);
+  font-weight: 600;
+}
+
+.legal-page a {
+  color: inherit;
+  text-decoration: underline;
+}
+
 .callback-page {
   display: grid;
   min-height: 100vh;
